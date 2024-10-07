@@ -16,3 +16,6 @@ init:
 figures/roc_rf.png derived_data.csv metrics.r
 	Rscript metrics.r
 
+
+report.pdf 
+	Rscript -e "tinytex::install_tinytex(); rmarkdown::render('report.Rmd',output_format='pdf_document')"
