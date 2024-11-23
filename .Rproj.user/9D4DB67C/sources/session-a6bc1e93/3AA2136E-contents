@@ -1,6 +1,6 @@
 This is my data science project for BIOS 611 (Data Science Basics) at UNC-CH. 
 
-Overview/Problem: : financial institutions are always on the lookout for ways to make processes efficient. One area of focus is the approval process of a loan. 
+Overview/Problem: : financial institutions are always on the lookout for ways to make processes efficient. One area of focus is the approval process of a loan. This project aims to use around 10 possible indicators to attempt predicting if a loan will be approved or not.
 
 Machine Learning algorithms used: Logistic Regression, Random Forest, Neural Networks.
 
