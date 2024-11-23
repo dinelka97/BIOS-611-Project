@@ -1,0 +1,74 @@
+---
+title: "HW - Project Organization"
+author: Dinelka Nanayakkara
+date: "October 7, 2024"
+output:
+  pdf_document:
+    number_sections: true
+
+
+---
+
+<br>
+
+```{r libraries, echo=FALSE, message=FALSE}
+library(gt)
+library(tidyverse)
+```
+
+# Git Respository
+The git repository can be found here: https://github.com/dinelka97/BIOS-611-Project.
+
+# Data Description
+The dataset used for this project relates to loan approval rates. The primary goal of using this data 
+would be to build a model that could predict if an individual gets approved for a loan or not. Although 
+supervised learning will be the primary task of this project, I aim to also perform unsupervised learning
+to explore patterns that might be in the data.
+
+## Variables
+
+The following table provides a brief overview of the variables used in the dataset.
+
+```{r, include=FALSE}
+data <- read_csv("src_data/train.csv")
+
+labels <- c(
+  "Unique identifier", "Age", "Income level", 
+  "Home ownership status (own, rent, mortgage, other)",
+  "Length of employment", "Purpose of obtaining loan", 
+  "Credibility of loan", "Loan amount", "Loan interest rate",
+  "Loan amount as a percentage of income", "Default indicator",
+  "Length of credit history", "Loan Approval Status"
+)
+
+d_type <- c(
+  "num", "num", "num", "categorical", "num", "categorical",
+  "categorical", "num", "float", "float", "categorical", "numeric",
+  "categorical"
+)
+
+vars <- data.frame(
+  var_name = colnames(data), label = labels, data_type = d_type
+)
+```
+
+```{r, echo=FALSE}
+vars %>%
+  gt() %>%
+  tab_style(
+    style = cell_text(weight = "bold"),
+    locations = cells_column_labels()
+  )
+```
+
+
+## Objectives
+
+I plan to work on the following as part of the project:
+
+* If we consider person_home_ownershipm person_emp_length, and person_income as one variable - can we build clusters based on this?
+* Does a past credit default decrease the possibility of loan approval by a great extent?
+* Can we classify loan amounts and credibility of an individual?
+* I hypothesize that those with a low income do not have a good credit history and they are more prone to apply for loans, thus having a longer credit history.
+* Build a model using logistic regression, random forest, and neural networks to predict if a loan is approved or not.
+
