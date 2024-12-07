@@ -1,0 +1,1 @@
+docker build . -t loan_pred_final
