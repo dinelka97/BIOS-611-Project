@@ -21,7 +21,7 @@ The above will create a docker container. We can next run this docker container 
 docker run -v $(pwd):/home/rstudio/ashar-ws\
            -p 8787:8787\
            -e PASSWORD="$(cat .password)"\
-           -it ashar
+           -it loan_pred
 ```
 Next, use link http://localhost:8787 via your web browser to access RStudio. To access the RStudio dashboard, you can run the following on the terminal.
 
