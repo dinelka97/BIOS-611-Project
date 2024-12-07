@@ -28,4 +28,9 @@ Next, use link http://localhost:8787 via your web browser to access RStudio. To 
 ```bash
 make run_shiny
 ```
+To look for more detail you can generate a report by using the following command,
+
+```bash
+make report_dinelka.html
+```
 
