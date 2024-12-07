@@ -20,9 +20,12 @@ The above will create a docker container. We can next run this docker container 
 ```bash
 docker run -v $(pwd):/home/rstudio/ashar-ws\
            -p 8787:8787\
-           -p 8888:8888\
            -e PASSWORD="$(cat .password)"\
            -it ashar
 ```
-Next, use link http://localhost:8787 via your web browser to access RStudio. Port 8888 also has been exposed to launch RShiny for those who want to view the dashboard.
+Next, use link http://localhost:8787 via your web browser to access RStudio. To access the RStudio dashboard, you can run the following on the terminal.
+
+```bash
+make run_shiny
+```
 
