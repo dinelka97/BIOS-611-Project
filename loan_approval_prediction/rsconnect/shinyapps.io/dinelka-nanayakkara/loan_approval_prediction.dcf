@@ -1,0 +1,10 @@
+name: loan_approval_prediction
+title:
+username: dinelka-nanayakkara
+account: dinelka-nanayakkara
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 13545860
+bundleId: 9478186
+url: https://dinelka-nanayakkara.shinyapps.io/loan_approval_prediction/
+version: 1
