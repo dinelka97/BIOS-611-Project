@@ -1,0 +1,191 @@
+---
+title: "Analytics within the space of financial loans"
+author: Dinelka Nanayakkara
+date: "`r Sys.Date()`"
+output:
+  html_document:
+    number_sections: true
+    toc: true
+    toc_float: true
+---
+
+```{r, echo=FALSE}
+library(gt)
+library(readr)
+library(knitr)
+
+```
+
+# Introduction
+
+## Questions of Interest
+
+The financial loan space is always a very interesting area, primarily because this is what drives financial institutions in terms of keeping their profits in tact. With inflation kicking into almost every segment in the economy, it is sometimes a given that one must get into debt. What makes debt even more interesting is the fact that one's approval is dependent on a variety of key factors, which could differ even between different types of loans. 
+
+* We have more than 50000 samples - can we cluster them based on only the 12 covariates available? 
+* What kinds of patterns can we observe when we reduce the dimension? Do the PC coefficients provide valuable input to how the PCs are generated (rather, can PCs provide a proxy something like a derived variables?)
+* How accurately can we predict the rate of approval?
+* Building an RShiny app to automate loan approval.
+
+The above are some questions/goals that this project aims to answer.
+
+## Dataset
+
+The dataset used in this project to answer this question is taken from Kaggle's Loan Approval Prediction competition (n=58644). This data can be found at https://www.kaggle.com/competitions/playground-series-s4e10/data. I have only used the "train.csv" data for this project. An overview of the data alongside corresponding labels are given below:
+
+```{r, echo=FALSE, message=FALSE}
+df_temp <- read_csv("derived_data/df_colLabel.csv")
+
+df_temp %>%
+  gt() %>%
+  tab_style(
+    style = cell_text(weight = "bold"),
+    locations = cells_column_labels()
+  )
+
+rm(df_temp)
+```
+
+* Due to the long lengths, category names of the "loan_intent" variable was altered. 
+
+Some overview of the data using visualizations are provided in the results section.
+
+
+# Methods
+
+The following methods have been used to answer the questions above. 
+
+**Data Cleaning/Pre-processing**: Outlier/discrepant value detection, missing value detection 
+
+**Exploratory Data Analysis**: Histograms, Principle Component Analysis (PCA), t-SNE
+
+**Prediction**: A super learner algorithm between logistic regression and random forest. Or if this does not work, pick what's from the two based on the Area under the Precision-Recall curve.
+
+**Evaluation metrics for prediction**: Area under the Precision-Recall curve. The AUC was not used because we observed imbalanced data in the outcome variable (loan_status)
+
+**Other**: 10-fold cross-validation (CV) was done under the prediction step, to find the most optimal model. Based on the cross-validation step we pick the best method, and then apply it to the entire dataset to obtain the AUC and also the F1 score.
+
+
+# Results
+
+## Data Cleaning/Pre-processing
+
+The dataset contained n=58648 records. No missing values were found in any variable. Outliers were detected using boxplots.
+
+First, we check for outliers of the numeric variables. Linear/logistic regression is sensitive to outliers, and therefore this is an important step.
+
+```{r, fig.retina=6, echo=FALSE}
+include_graphics("figures/outliers.png")
+```
+
+* As observed above, all variables do have a good amount of outliers. We must be very careful when deciding whether to remove outliers or not. Some of these outliers are indeed discrepant data values, but some hold important information.
+
+* Random Forest and Neural Networks are robust to outliers, and therefore we should be fine to keep them (as long not discrepant records). However, we must be careful with outliers when using logistic regression.
+
+* The obvious discrepant record visible here is that with an age of ~125 and an employment length of ~125. They come from distinct records. Given that we have sufficient sample size, these records (n=3) were removed prior to performing further analysis.
+
+* For the purpose of this project, all outliers have been removed. \
+
+
+After removing outlier observations, we next look at the distributions of all variables (including the outcome).
+
+```{r, fig.retina=6, echo=FALSE}
+include_graphics("figures/dist_numeric.png")
+```
+
+* Most individuals are observed to be in the age range of about 20-40 years old.
+
+* Although it might not be easy to generalize results to the entire population by age, the income levels of this sample reflect that of the entire population (~$60k)
+
+
+```{r, fig.retina=6, echo=FALSE}
+include_graphics("figures/dist_factor.png")
+```
+
+
+* Another key observation from this very simple plot is that the proportion of individuals who have a record of defaulting on a previous loan looks to be the same as those who did not get their loans approved. Wonder if this variable holds a very high importance in the loan approval procedure. Let's find out when we do our estimation tasks.
+
+* As you can see from the plots above, our outcome of interest "loan_status" is very imbalanced. The proportion who did not have a loan approved is more than 5 times of that who had a loan approved. This is important when we ruled out AUC as an evaluation metric.
+
+* As an overall comment, it could be noted that this sample provides a nice reflection of the population which could help us understand the population on average (which is what we need in most instances).\
+
+
+## Exploratory Data Analysis (EDA)
+
+### PCA
+
+* PCA was performed using only numeric variables. 
+
+* The top 2 PCs explained only about 52.11% of the variation in the data.
+
+* This is probably the reason as to why the PC1 vs PC2 plot (Figure 3) does not provide too much information.
+
+* PCA was performed before and after removing outliers.
+
+```{r, fig.retina=6, echo=FALSE}
+include_graphics("figures/pca_scree_rem_outliers.png")
+include_graphics("figures/pca_scree.png")
+```
+
+As observed above, removing outliers does not do much in terms of understanding data in a low dimension.
+
+```{r, fig.retina=6, echo=FALSE}
+include_graphics("figures/pc1_pc2_rem_outliers.png")
+include_graphics("figures/pc1_pc2.png")
+```
+
+### t-SNE
+
+Another approach that could be taken to visualize data in a lower dimension is t-SNE.
+
+```{r, fig.retina=6, echo=FALSE}
+include_graphics("figures/tsne.png")
+include_graphics("figures/tsne_rem_outliers.png")
+```
+
+As observed above, removing outliers does not do much in terms of understanding data in a low dimension. It certainly is quite hard to explicitly see any patterns as per the plots above.
+
+
+## Prediction
+
+The prediction task was implemented using a Generalized Linear Model (GLM) framework and also using Random Forest. Due to time constraints no parameter tuning was done when training the random forest algorithm. The average Area under the Precision-Recall (PR) curve over the 10-folds of cross-validation were ~ 0.92 and 0.54 for random forest and GLM respectively. 
+
+I initially planned to use a weighted model between random forest and GLM. However, when I ran a simple algorithm that had the predicted probabilities of random forest and GLM as covariates and the true categories as the outcome, it resulted in a negative weight for the GLM model. This made me ignore the GLM model completely, and build the prediction platform based on the random forest model. The entire training set was finally used to build the random forest model to be used in the RShiny dashboard.
+
+
+## RShiny app implementation
+
+The RShiny interface is a simple dashboard which helps one to set their own parameters, and see if they pre-qualify for a loan. This is something which could be implemented by financial institutions. It's true that this is very simple and probably will account for errors individually. However, on a population average we should get decent results. It is very user friendly, in that, a user could simple either use a slider or a drop down menu to choose their options. A screenshot from the RShiny dashboard is show below.
+
+```{r, fig.retina=6, echo=FALSE, out.width="50%"}
+include_graphics("shiny.png")
+```
+
+# Discussion
+
+I have not conducted a literature review to see what other papers/datasets find. Would be nice to dive deeper into this. To recall, the primary objectives of this project was to look if we could find any patterns in our data by reducing the dimension of our data to a 2-D frame. However, using PCA and t-SNE did not seem to help achieve this task. As a next step, we should maybe look at other types of dimension reduction techniques. UMAP is one such example. No clear clusters were visible reducing the dimension using PCA and t-SNE.
+
+Our next objective was to attempt building a predictive model that could classify if an individual with a given set of characteristics should be approved of their loan request or not. In simple terms, this was a classification task. GLM and random forest was used to work on this objective. A weighted average of these two methods did not seem the best way forward, and therefore I used random forest, given its higher area under the precision-recall (PR) curve. We saw an area under the PR-curve of more than 0.90. 
+
+This build random forest model was then implemented onto an RShiny dashboard so that anyone could foresee their probable results, and change their background/expectations accordingly prior to going through the hassle of going to a financial institution. The RShiny platform could certainly be improved in terms of its user interface. Currently, its at the most minimal level. 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
